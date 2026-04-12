@@ -1,0 +1,9 @@
+PyMuPDF
+pdfplumber
+pandas
+sqlalchemy
+psycopg2-binary
+python-dotenv
+ollama
+rapidfuzz
+streamlit

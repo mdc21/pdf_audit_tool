@@ -1,0 +1,29 @@
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+streamlit.log
+
+# Data & Research (Sensitive/Large)
+data/
+scratch/
+.gemini/
+
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/
+
+# Backups
+*.bak
