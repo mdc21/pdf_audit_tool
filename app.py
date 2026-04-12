@@ -104,9 +104,15 @@ except Exception as e:
 if db_connected:
     pass
 
-LOGO_PATH = "/Users/shilpadhall/.gemini/antigravity/brain/ae12f197-fd65-4594-84f8-9968b5719b5b/kompare_brand_logo_1775761138067.png"
+# Branding Assets (Portable Pathing)
+DEFAULT_LOGO = "brand_logo.png"
+base_path = os.path.dirname(__file__)
+LOGO_PATH = os.path.join(base_path, DEFAULT_LOGO)
 
-st.set_page_config(page_title="Kompare PDF Audit", page_icon=LOGO_PATH, layout="wide")
+# Safety Check for Logo
+curr_logo = LOGO_PATH if os.path.exists(LOGO_PATH) else None
+
+st.set_page_config(page_title="Kompare PDF Audit", page_icon=curr_logo, layout="wide")
 
 # Premium CSS Injection
 st.markdown("""
@@ -209,12 +215,16 @@ div.stAlert p { color: #1b263b !important; }
 """, unsafe_allow_html=True)
 
 # Main Branding
-st.sidebar.image(LOGO_PATH, width=80)
-col1, col2 = st.columns([1, 5])
-with col1:
-    st.image(LOGO_PATH, width=100)
-with col2:
-    st.title("Kompare Audit Suite")
+if curr_logo:
+    st.sidebar.image(curr_logo, width=80)
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image(curr_logo, width=100)
+    with col2:
+        st.title("Kompare Audit Suite")
+        st.markdown("*Institutional-Grade PDF Verification & Analytics*")
+else:
+    st.title("🛡️ Kompare Audit Suite")
     st.markdown("*Institutional-Grade PDF Verification & Analytics*")
 
 tab_audit, tab_dashboard, tab_analytics = st.tabs(["🚀 Run Audit", "📊 History Dashboard", "📈 Advanced Analytics"])
