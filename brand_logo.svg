@@ -5,12 +5,8 @@
   <!-- Main Shield -->
   <path d="M100 15L165 42V95C165 137.5 137.5 177 100 185C62.5 177 35 137.5 35 95V42L100 15Z" fill="#F8FAFC" stroke="#4361EE" stroke-width="8" stroke-linejoin="round"/>
   
-  <!-- Content: Document Motif -->
-  <rect x="70" y="60" width="60" height="80" rx="4" fill="#E2E8F0"/>
-  <rect x="75" y="75" width="50" height="6" rx="3" fill="#4361EE" opacity="0.6"/>
-  <rect x="75" y="90" width="50" height="6" rx="3" fill="#4361EE" opacity="0.6"/>
-  <rect x="75" y="105" width="30" height="6" rx="3" fill="#4361EE" opacity="0.6"/>
-  
-  <!-- Accent: Checkmark (Verification) -->
-  <path d="M120 120L135 135L170 100" stroke="#4361EE" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Content: Bold Geometric 'K' -->
+  <path d="M75 60V140" stroke="#4361EE" stroke-width="16" stroke-linecap="round"/>
+  <path d="M125 60L75 100L125 140" stroke="#4361EE" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 100L135 75" stroke="#4361EE" stroke-width="16" stroke-linecap="round"/>
 </svg>
