@@ -1,1 +1,7 @@
-{"src_dir": "/Users/shilpadhall/agentic_ai_projects/pdf_audit_tool/data/reference", "tgt_dir": "/Users/shilpadhall/agentic_ai_projects/pdf_audit_tool/data/uch", "last_release": "April_2026", "last_squad": "alpha", "last_pack": "test_1"}
+{
+  "src_dir": "data/reference",
+  "tgt_dir": "data/newtool",
+  "last_release": "April_2026",
+  "last_squad": "alpha",
+  "last_pack": "test_1"
+}

@@ -62,13 +62,23 @@ def background_ai_insight(scenario_id, diff_text, filename):
 SETTINGS_FILE = 'settings.json'
 
 def load_settings():
+    defaults = {
+        'src_dir': 'data/reference',
+        'tgt_dir': 'data/newtool',
+        'last_release': 'April_2026',
+        'last_squad': 'alpha',
+        'last_pack': 'test_1'
+    }
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, 'r') as f:
-                return json.load(f)
+                saved = json.load(f)
+                # Merge saved with defaults to handle partial files
+                defaults.update(saved)
+                return defaults
         except:
-            return {}
-    return {}
+            return defaults
+    return defaults
 
 def save_settings(src, tgt, release, squad, pack):
     try:
