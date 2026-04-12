@@ -256,7 +256,22 @@ with tab_audit:
         return match.group(1) if match else None
 
     def get_doc_id(filename):
-        """Extracts document identifier from filenames for pairing (e.g., 'doc_123.pdf' -> '123')."""
+        """
+        Extracts document identifier from filenames for pairing.
+        Strips common noise-words (orig, mod, ref, test) and joins prefix with ID.
+        E.g., 'payslip_orig_1.pdf' -> 'payslip_1'
+        """
+        # Strip common noise segments
+        clean = re.sub(r'(_orig|_mod|_ref|_test|_v\d+)', '', filename, flags=re.IGNORECASE)
+        # Extract prefix and numeric ID (e.g. 'payslip_1')
+        match = re.search(r'([a-zA-Z_-]+)(\d+)', clean)
+        if match:
+            # Clean up the prefix by removing trailing separators
+            prefix = match.group(1).strip('_')
+            id_val = match.group(2)
+            return f"{prefix}_{id_val}"
+        
+        # Fallback to simple number if no prefix structure found
         match = re.search(r'(\d+)', filename)
         return match.group(1) if match else None
 
@@ -595,7 +610,7 @@ SYSTEMIC ISSUES:
                 matched_src.add(s)
                 matched_tgt.add(s)
                 
-        # 2. ID Match (Remaining)
+        # 2. Context-Aware ID Match (Noise-word stripped Prefix + ID)
         remaining_src = [s for s in src_files if s not in matched_src]
         remaining_tgt = [t for t in tgt_files if t not in matched_tgt]
         
@@ -610,7 +625,24 @@ SYSTEMIC ISSUES:
                     matched_tgt.add(t)
                     break
                     
-        # 3. Fuzzy Match (Remaining)
+        # 3. Numeric Fallback (Legacy support for th_doc_1 -> much_doc_1)
+        remaining_src = [s for s in src_files if s not in matched_src]
+        remaining_tgt = [t for t in tgt_files if t not in matched_tgt]
+        
+        for s in remaining_src:
+            match = re.search(r'(\d+)', s)
+            if not match: continue
+            sid = match.group(1)
+            for t in remaining_tgt:
+                if t in matched_tgt: continue
+                tmatch = re.search(r'(\d+)', t)
+                if tmatch and tmatch.group(1) == sid:
+                    pairs.append((s, t))
+                    matched_src.add(s)
+                    matched_tgt.add(t)
+                    break
+
+        # 4. Fuzzy Match (Remaining orphans with high similarity)
         remaining_src = [s for s in src_files if s not in matched_src]
         remaining_tgt = [t for t in tgt_files if t not in matched_tgt]
         
