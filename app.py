@@ -104,15 +104,14 @@ except Exception as e:
 if db_connected:
     pass
 
-# Branding Assets (Portable Pathing)
-DEFAULT_LOGO = "brand_logo.png"
-base_path = os.path.dirname(__file__)
-LOGO_PATH = os.path.join(base_path, DEFAULT_LOGO)
+# Branding Assets (Institutional SVG)
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "brand_logo.svg")
 
-# Safety Check for Logo
-curr_logo = LOGO_PATH if os.path.exists(LOGO_PATH) else None
+st.set_page_config(page_title="Kompare PDF Audit", page_icon=LOGO_PATH if os.path.exists(LOGO_PATH) else "🛡️", layout="wide")
 
-st.set_page_config(page_title="Kompare PDF Audit", page_icon=curr_logo, layout="wide")
+# Official Streamlit Logo Integration
+if os.path.exists(LOGO_PATH):
+    st.logo(LOGO_PATH)
 
 # Premium CSS Injection
 st.markdown("""
@@ -214,17 +213,15 @@ div.stAlert p { color: #1b263b !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# Main Branding
-if curr_logo:
-    st.sidebar.image(curr_logo, width=80)
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image(curr_logo, width=100)
-    with col2:
-        st.title("Kompare Audit Suite")
-        st.markdown("*Institutional-Grade PDF Verification & Analytics*")
-else:
-    st.title("🛡️ Kompare Audit Suite")
+# Main Branding Header
+col1, col2 = st.columns([1, 6])
+with col1:
+    if os.path.exists(LOGO_PATH):
+        st.image(LOGO_PATH, width=80)
+    else:
+        st.title("🛡️")
+with col2:
+    st.title("Kompare Audit Suite")
     st.markdown("*Institutional-Grade PDF Verification & Analytics*")
 
 tab_audit, tab_dashboard, tab_analytics = st.tabs(["🚀 Run Audit", "📊 History Dashboard", "📈 Advanced Analytics"])
