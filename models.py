@@ -1,8 +1,14 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey, LargeBinary, Float, DateTime, Date, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/postgres"
+# Cloud-Ready Database Configuration
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
+
+# Handle 'postgres://' -> 'postgresql://' fix for SQLAlchemy 2.0 (common in HeroKu/Streamlit Cloud)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
