@@ -1,5 +1,4 @@
 import fitz, pdfplumber, re, hashlib, io, math, base64, os
-import pandas as pd
 import difflib
 import logging
 import ollama
@@ -14,8 +13,9 @@ def get_openai_client(api_key, base_url=None):
         return None
 
 class PDFAuditor:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
+        # Configuration is currently driven by environment variables
+        pass
 
     def get_hash(self, file_bytes):
         return hashlib.md5(file_bytes).hexdigest()

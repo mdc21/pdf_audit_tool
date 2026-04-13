@@ -37,7 +37,7 @@ def background_ai_insight(scenario_id, diff_text, filename):
     try:
         from engine import PDFAuditor
         # Using a minimal auditor instance for the shared summarizing logic
-        temp_auditor = PDFAuditor({})
+        temp_auditor = PDFAuditor()
         insight = temp_auditor.summarize_diff_with_llm(diff_text, filename)
         
         # Fresh DB session for thread safety
@@ -265,7 +265,7 @@ with tab_audit:
     import re
 
     # --- Initialization ---
-    auditor = PDFAuditor({})
+    auditor = PDFAuditor()
 
     def get_release_from_filename(filename):
         """Extracts numeric ID from filenames like 'th_doc_1.pdf' or 'much_doc_1.pdf'"""
