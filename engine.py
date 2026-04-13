@@ -121,7 +121,7 @@ class PDFAuditor:
             provider = "Cloud API" if api_key else "Local Ollama"
             logging.error(f"LLM Summarization via {provider} failed for {filename}: {e}")
             if not api_key:
-                return f"Narrative synth failed: Failed to connect to Ollama. Running in the Cloud? Please add 'LLM_API_KEY' to your Streamlit Secrets."
+                return f"Narrative synth failed [REF-ENG-114]: Failed to connect to Ollama. Running in the Cloud? Please add 'LLM_API_KEY' to your Streamlit Secrets."
             return f"AI Insight unavailable (Cloud API Error): {str(e)}"
 
     def compare_tables(self, src_bytes, tgt_bytes):

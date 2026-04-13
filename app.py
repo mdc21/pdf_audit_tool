@@ -66,7 +66,7 @@ def call_analyst_llm(messages, temperature=0.2, max_tokens=1000, model_override=
         provider = "Cloud API" if api_key else "Local Ollama"
         logging.error(f"Analyst LLM failed via {provider}: {e}")
         if not api_key:
-            return "Narrative failed: Failed to connect to Ollama. Running in the Cloud? Add LLM_API_KEY to Secrets."
+            return "Narrative failed [REF-APP-69]: Failed to connect to Ollama. Running in the Cloud? Add LLM_API_KEY to Secrets."
         return f"AI Error ({provider}): {str(e)}"
 
 def background_ai_insight(scenario_id, diff_text, filename):
