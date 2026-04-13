@@ -4,9 +4,15 @@ import logging
 import ollama
 
 def get_openai_client(api_key, base_url=None):
-    """Dynamically import and initialize OpenAI client ONLY when needed."""
+    """Dynamically import and initialize OpenAI client. Auto-detects Groq provider."""
     try:
         from openai import OpenAI  # type: ignore
+        
+        # Institutional Auto-Detection for Groq
+        if api_key.startswith("gsk_") and not base_url:
+            base_url = "https://api.groq.com/openai/v1"
+            logging.info("Deep-Link: Auto-detected Groq Provider via API Key prefix.")
+            
         return OpenAI(api_key=api_key, base_url=base_url)
     except ImportError:
         logging.error("OpenAI library not found. Run 'pip install openai' to use Cloud LLM features.")
