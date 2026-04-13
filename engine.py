@@ -1,8 +1,9 @@
-import fitz, pdfplumber, re, hashlib, io, math, base64
+import fitz, pdfplumber, re, hashlib, io, math, base64, os
 import pandas as pd
 import difflib
 import logging
 import ollama
+from openai import OpenAI
 
 class PDFAuditor:
     def __init__(self, config):
@@ -35,7 +36,7 @@ class PDFAuditor:
         return all_lines
 
     def summarize_diff_with_llm(self, diff_text, filename):
-        """Generates a business-oriented summary of discrepancies using local LLM."""
+        """Generates a business-oriented summary of discrepancies using local LLM or Cloud API."""
         if not diff_text or diff_text.strip() == "":
             return "No significant text discrepancies found."
             
@@ -51,27 +52,49 @@ class PDFAuditor:
         """
         
         user_content = f"Document: {filename}\nTechnical Diff:\n{diff_text[:2000]}"
-        logging.info(f"LLM INPUT (Chat Prompt for {filename}):\n{user_content}")
+        api_key = os.getenv("LLM_API_KEY")
+        model = os.getenv("LLM_MODEL", "qwen2.5:7b")
+        base_url = os.getenv("LLM_BASE_URL") # Optional for custom endpoints
+        
+        logging.info(f"LLM Processing Request for {filename} (Model: {model})")
         
         try:
-            response = ollama.chat(
-                model="qwen2.5:7b",
-                messages=[
-                    {'role': 'system', 'content': system_prompt},
-                    {'role': 'user', 'content': user_content},
-                ],
-                options={"temperature": 0.2, "num_predict": 400}
-            )
-            llm_response = response['message']['content'].strip()
+            if api_key:
+                # Cloud-Ready Path: OpenAI Compatible (Groq, OpenRouter, etc.)
+                client = OpenAI(api_key=api_key, base_url=base_url)
+                response = client.chat.completions.create(
+                    model=os.getenv("LLM_CLOUD_MODEL", "llama-3.3-70b-versatile") if not base_url else model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content},
+                    ],
+                    temperature=0.2,
+                    max_tokens=400
+                )
+                llm_response = response.choices[0].message.content.strip()
+            else:
+                # Local Path: Ollama
+                response = ollama.chat(
+                    model=model,
+                    messages=[
+                        {'role': 'system', 'content': system_prompt},
+                        {'role': 'user', 'content': user_content},
+                    ],
+                    options={"temperature": 0.2, "num_predict": 400}
+                )
+                llm_response = response['message']['content'].strip()
             
             if not llm_response:
-                logging.warning(f"LLM returned an empty response for {filename}. This may indicate a model stalling or resource issue.")
+                logging.warning(f"LLM returned an empty response for {filename}.")
                 return "Analysis pending (LLM returned no content)."
                 
             logging.info(f"LLM OUTPUT (Response for {filename}):\n{llm_response}")
             return llm_response
         except Exception as e:
-            logging.error(f"LLM Summarization failed for {filename}: {e}")
+            provider = "Cloud API" if api_key else "Local Ollama"
+            logging.error(f"LLM Summarization via {provider} failed for {filename}: {e}")
+            if not api_key:
+                return f"Narrative synth failed: Failed to connect to Ollama. Deployed? Add 'LLM_API_KEY' to Streamlit Secrets."
             return f"AI Insight unavailable: {str(e)}"
 
     def compare_tables(self, src_bytes, tgt_bytes):

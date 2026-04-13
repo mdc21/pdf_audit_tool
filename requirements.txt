@@ -8,4 +8,4 @@ psycopg2-binary
 python-dotenv
 ollama
 rapidfuzz
-streamlit
+streamlitopenai
