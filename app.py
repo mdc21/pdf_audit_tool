@@ -232,7 +232,10 @@ with col1:
         st.title("🛡️")
 with col2:
     st.title("Kompare Audit Suite")
-    st.markdown("*Institutional-Grade PDF Verification & Analytics*")
+    # Dynamic Version & Secret Badge for deployment verification
+    has_api_key = "LLM_API_KEY" in os.environ or (hasattr(st, 'secrets') and "LLM_API_KEY" in st.secrets)
+    badge = "🟢 Cloud-Ready" if has_api_key else "🟡 Local-Ollama"
+    st.markdown(f"**{badge}** | *Institutional-Grade PDF Verification & Analytics (v2.1.0)*")
 
 tab_audit, tab_dashboard, tab_analytics = st.tabs(["🚀 Run Audit", "📊 History Dashboard", "📈 Advanced Analytics"])
 

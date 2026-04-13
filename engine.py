@@ -60,7 +60,17 @@ class PDFAuditor:
         """
         
         user_content = f"Document: {filename}\nTechnical Diff:\n{diff_text[:2000]}"
+        
+        # Robust Secret Retrieval for Cloud Deployments
         api_key = os.getenv("LLM_API_KEY")
+        if not api_key:
+            try:
+                import streamlit as st
+                if hasattr(st, 'secrets') and "LLM_API_KEY" in st.secrets:
+                    api_key = st.secrets["LLM_API_KEY"]
+            except ImportError:
+                pass
+
         model = os.getenv("LLM_MODEL", "qwen2.5:7b")
         base_url = os.getenv("LLM_BASE_URL") # Optional for custom endpoints
         
