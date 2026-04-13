@@ -3,7 +3,15 @@ import pandas as pd
 import difflib
 import logging
 import ollama
-from openai import OpenAI
+
+def get_openai_client(api_key, base_url=None):
+    """Dynamically import and initialize OpenAI client ONLY when needed."""
+    try:
+        from openai import OpenAI
+        return OpenAI(api_key=api_key, base_url=base_url)
+    except ImportError:
+        logging.error("OpenAI library not found. Run 'pip install openai' to use Cloud LLM features.")
+        return None
 
 class PDFAuditor:
     def __init__(self, config):
@@ -61,7 +69,10 @@ class PDFAuditor:
         try:
             if api_key:
                 # Cloud-Ready Path: OpenAI Compatible (Groq, OpenRouter, etc.)
-                client = OpenAI(api_key=api_key, base_url=base_url)
+                client = get_openai_client(api_key, base_url)
+                if not client:
+                    return "Cloud Analysis Error: 'openai' library missing. Run 'pip install openai' locally."
+                
                 response = client.chat.completions.create(
                     model=os.getenv("LLM_CLOUD_MODEL", "llama-3.3-70b-versatile") if not base_url else model,
                     messages=[
