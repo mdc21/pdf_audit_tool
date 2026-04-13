@@ -12,8 +12,15 @@ __pycache__/
 *.log
 streamlit.log
 
-# Data & Research (Sensitive/Large)
-data/
+# Data & Research (White-list samples for Cloud)
+!data/
+data/*
+!data/reference/
+!data/newtool/
+!data/reference/*.pdf
+!data/newtool/*.pdf
+
+# Other protected dirs
 scratch/
 .gemini/
 
