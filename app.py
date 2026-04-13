@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 import json
-from engine import PDFAuditor
+from engine import PDFAuditor, get_openai_client
 from models import SessionLocal, Scenario, Release, Pack, Squad, Template, Base, engine as db_engine
 from sqlalchemy import text
 from sqlalchemy.orm import Session, joinedload
@@ -30,6 +30,44 @@ def get_ai_executor(max_workers):
     """Provides a persistent ThreadPool for background LLM tasks."""
     logging.info(f"Initializing/Updating AI ThreadPoolExecutor with {max_workers} workers.")
     return ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="AI_Analyst")
+
+def call_analyst_llm(messages, temperature=0.2, max_tokens=1000, model_override=None):
+    """Unified LLM caller for the Analyst features."""
+    api_key = os.getenv("LLM_API_KEY")
+    if not api_key and hasattr(st, 'secrets') and "LLM_API_KEY" in st.secrets:
+        api_key = st.secrets["LLM_API_KEY"]
+        
+    base_url = os.getenv("LLM_BASE_URL")
+    local_model = os.getenv("LLM_MODEL", "qwen2.5:7b")
+    
+    try:
+        if api_key:
+            client = get_openai_client(api_key, base_url)
+            if not client: return "Error: 'openai' missing. Run 'pip install openai' locally."
+            
+            cloud_model = os.getenv("LLM_CLOUD_MODEL") or (local_model if base_url and local_model != "qwen2.5:7b" else "llama-3.3-70b-versatile")
+            model = model_override if model_override else cloud_model
+            
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            return response.choices[0].message.content.strip()
+        else:
+            response = ollama.chat(
+                model=local_model,
+                messages=messages,
+                options={"temperature": temperature, "num_predict": max_tokens}
+            )
+            return response['message']['content'].strip()
+    except Exception as e:
+        provider = "Cloud API" if api_key else "Local Ollama"
+        logging.error(f"Analyst LLM failed via {provider}: {e}")
+        if not api_key:
+            return "Narrative failed: Failed to connect to Ollama. Running in the Cloud? Add LLM_API_KEY to Secrets."
+        return f"AI Error ({provider}): {str(e)}"
 
 def background_ai_insight(scenario_id, diff_text, filename):
     """Isolated worker for asynchronous LLM analysis and DB persistence."""
@@ -394,15 +432,13 @@ with tab_audit:
         
         logging.info(f"AI ANALYST (Phase 1: Code Gen) - Prompt: {prompt}")
         try:
-            response = ollama.chat(
-                model="qwen2.5:7b",
+            generated_code = call_analyst_llm(
                 messages=[
                     {'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': f"Generate code for: {prompt}"},
                 ],
-                options={"temperature": 0.0} # Deterministic code
+                temperature=0.0 # Deterministic
             )
-            generated_code = response['message']['content'].strip()
             logging.info(f"AI ANALYST (Phase 1: Code Gen) - Output Code:\n{generated_code}")
             return generated_code
         except Exception as e:
@@ -440,15 +476,13 @@ with tab_audit:
         
         logging.info(f"AI ANALYST (Phase 2: Narrative) - Results Summary:\n{results_summary}")
         try:
-            response = ollama.chat(
-                model="qwen2.5:7b",
+            narrative = call_analyst_llm(
                 messages=[
                     {'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': context},
                 ],
-                options={"temperature": 0.1}
+                temperature=0.1
             )
-            narrative = response['message']['content'].strip()
             logging.info(f"AI ANALYST (Phase 2: Narrative) - Output:\n{narrative}")
             return narrative
         except Exception as e:
@@ -518,15 +552,14 @@ Provide detailed step-by-step reasoning:"""
 
         logging.info(f"AI ANALYST (Phase 3: Reasoning) - Question: {question}")
         try:
-            response = ollama.chat(
-                model="qwen2.5:7b",
+            reasoning = call_analyst_llm(
                 messages=[
                     {'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': prompt},
                 ],
-                options={"temperature": 0.1, "num_predict": 600}
+                temperature=0.1,
+                max_tokens=600
             )
-            reasoning = response['message']['content'].strip()
             logging.info(f"AI ANALYST (Phase 3: Reasoning) - Output:\n{reasoning}")
             return reasoning
         except Exception as e:
@@ -600,15 +633,14 @@ SYSTEMIC ISSUES:
         
         logging.info(f"REPORT GENERATOR - Release Snapshot Context:\n{snapshot}")
         try:
-            response = ollama.chat(
-                model="qwen2.5:7b",
+            report = call_analyst_llm(
                 messages=[
                     {'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': snapshot},
                 ],
-                options={"temperature": 0.3, "num_predict": 1500}
+                temperature=0.3,
+                max_tokens=1500
             )
-            report = response['message']['content'].strip()
             logging.info(f"REPORT GENERATOR - Final Report Character Count: {len(report)}")
             return report
         except Exception as e:
