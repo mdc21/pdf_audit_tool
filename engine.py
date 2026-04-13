@@ -73,8 +73,14 @@ class PDFAuditor:
                 if not client:
                     return "Cloud Analysis Error: 'openai' library missing. Run 'pip install openai' locally."
                 
+                # Intelligent Model Selection: 
+                # 1. User specified LLM_CLOUD_MODEL 
+                # 2. Or if base_url is set, user specified LLM_MODEL
+                # 3. Default to robust Llama 3.3 for cloud
+                cloud_model = os.getenv("LLM_CLOUD_MODEL") or (model if base_url and model != "qwen2.5:7b" else "llama-3.3-70b-versatile")
+                
                 response = client.chat.completions.create(
-                    model=os.getenv("LLM_CLOUD_MODEL", "llama-3.3-70b-versatile") if not base_url else model,
+                    model=cloud_model,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_content},
@@ -141,10 +147,12 @@ class PDFAuditor:
                     rms = 0
                 else:
                     sum_sq, count = 0, 0
-                    for j in range(0, len(s_buf), 10):
+                    # Optimization: Sample pixels for performance on large documents
+                    for j in range(0, len(s_buf), 16): 
                         sum_sq += (int(s_buf[j]) - int(t_buf[j]))**2
                         count += 1
-                    rms = math.sqrt(sum_sq / count) / 255.0
+                    
+                    rms = math.sqrt(sum_sq / count) / 255.0 if count > 0 else 0
             
             total_rms += rms
             if rms > 0:
