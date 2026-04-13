@@ -6,7 +6,7 @@ import ollama
 def get_openai_client(api_key, base_url=None):
     """Dynamically import and initialize OpenAI client ONLY when needed."""
     try:
-        from openai import OpenAI
+        from openai import OpenAI  # type: ignore
         return OpenAI(api_key=api_key, base_url=base_url)
     except ImportError:
         logging.error("OpenAI library not found. Run 'pip install openai' to use Cloud LLM features.")
